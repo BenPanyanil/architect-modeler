@@ -96,7 +96,9 @@ export default {
 }
 </script>
 
-<style scoped>
+<style lang="scss">
+  @import "../styles.scss";
+
   .card {
     position: absolute;
     left: 500px;
@@ -104,6 +106,6 @@ export default {
     cursor: pointer;
     display: inline-block;
     padding: 20px;
-    background: lightskyblue;
+    background: $blue;
   }
 </style>

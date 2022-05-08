@@ -9,8 +9,12 @@
           <span>Function +</span>
         </div>
       </section>
-      <section class="saved-solutions">
 
+      <section class="card-menu-section">
+        <span>Model preview</span>
+        <div class="model-preview-container">
+
+        </div>
       </section>
     </section>
 
@@ -40,7 +44,7 @@ export default {
 </script>
 
 <style lang="scss">
-  $white: #fcfcee;
+  @import "./styles.scss";
 
   * {
     box-sizing: border-box;
@@ -54,7 +58,6 @@ export default {
     margin: 0;
     width: 100vw;
     overflow-x: hidden;
-    background: lightgoldenrodyellow;
   }
 
   .card-menu {
@@ -64,16 +67,16 @@ export default {
     z-index: 999;
     display: inline-flex;
     flex-direction: column;
-    background: #221f22;
+    background: $grey_3;
     height: 100vh;
-    width: 400px;
-    padding: 40px;
+    min-width: 320px;
+    padding: 30px;
     color: $white;
   }
 
   .card-pool {
     display: inline-block;
-    background: #2d2a2e;
+    background: $grey_2;
     width: 100%;
   }
 
@@ -88,6 +91,15 @@ export default {
   }
 
   .card-menu-section {
-    border-bottom: 1px solid $white;
+    padding: 30px 0px;
+    border-bottom: 1px solid $grey_0;
+    width: 100%;
+  }
+
+  .model-preview-container {
+    margin-top: 10px;
+    background: $grey_1;
+    width: 100%;
+    min-height: 300px;
   }
 </style>
