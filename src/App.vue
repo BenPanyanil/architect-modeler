@@ -1,11 +1,13 @@
 <template>
   <body>
 
-    <side-menu>
+    <side-menu 
+      @createModel="createModel">
     </side-menu>
 
-    <card-pool>
-    </card-pool>
+    <model-pool
+      :models="models">
+    </model-pool>
 
   </body>
 </template>
@@ -13,21 +15,30 @@
 <script>
 
 import SideMenu from "./components/SideMenu.vue";
-import CardPool from "./components/CardPool.vue";
+import ModelPool from "./components/ModelPool.vue";
 
 export default {
   name: 'App',
   components: {
     SideMenu,
-    CardPool,
+    ModelPool,
   },
+  data() {
+    return {
+      models: [],
+    }
+  },
+  methods: {
+    createModel(modelObject) {
+      this.models.push(modelObject)
+    }
+  }
 }
 </script>
 
 <style lang="scss">
   * {
     box-sizing: border-box;
-    font-size: 0.9rem;
     font-family: 'Poppins', sans-serif;
   }
 
