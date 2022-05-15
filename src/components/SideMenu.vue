@@ -6,9 +6,24 @@
 
     <section class="side-menu-section">
       <div class="program-objects">
-        <span @click="createModel('class')">Class +</span>
-        <span @click="createModel('class-instance')">Class instance +</span>
-        <span @click="createModel('function')">Function +</span>
+        <span 
+          tabindex="0"
+          @keypress.space="createModel('class')" 
+          @click="createModel('class')">
+            Class +
+          </span>
+        <span 
+          tabindex="0"
+          @keypress.space="createModel('class-instance')" 
+          @click="createModel('class-instance')">
+            Class instance +
+          </span>
+        <span 
+          tabindex="0"
+          @keypress.space="createModel('function')" 
+          @click="createModel('function')">
+            Function +
+          </span>
       </div>
     </section>
 
@@ -19,15 +34,20 @@
         class="model-preview-container">
         <div 
           class="clip-path-container" 
-          :class="{'open-clip-path': clipOpen}">
+          :class="{'open-clip-path': clipOpen, 'on-quickdrag': onQuickDrag}">
           <model-template 
             v-if="modelPreview"
+            ref="modelPreview"
             @resetModelPreview="resetModelPreview"
             :isPreview="true"
             v-model:modelData="modelPreview">
           </model-template>
         </div>
       </div>
+    </section>
+
+    <section class="side-menu-section">
+      <span>My solutions</span>
     </section>
 
   </main>
@@ -46,7 +66,16 @@ export default {
     return {
       modelPreview: null,
       clipOpen: false,
+      onQuickDrag: false,
     }
+  },
+  mounted() {
+    window.onkeydown = this.startQuickDrag;
+    window.onkeyup = this.stopQuickDrag
+  },
+  unmounted() {
+    window.onkeydown = null;
+    window.onkeyup = null;
   },
   methods: {
     createModel(type) {
@@ -59,6 +88,24 @@ export default {
     resetModelPreview() {
       this.clipOpen = false;
       this.modelPreview = null;
+    },
+    startQuickDrag(e) {
+      if (e.key === "Control" && this.modelPreview) {
+        this.onQuickDrag = true;
+        const model = this.$refs.modelPreview.$refs.model;
+        
+        if (window.onmousemove === null) {
+          window.onmousemove = (mouse) => {
+            ModelTemplate.methods.quickDrag(mouse, model);
+          };
+        }
+      }
+    },
+    stopQuickDrag(e) {
+      if (e.key === "Control" && this.modelPreview) {
+        window.onmousemove = null;
+        ModelTemplate.methods.quickDragStopped();
+      }
     },
   }
 }
@@ -87,10 +134,15 @@ export default {
 }
 
 .program-objects span {
+  align-self: start;
   cursor: pointer;
 
   &:hover {
     color: $orange;
+  }
+  &:focus {
+    color: $orange;
+    outline-style: groove;
   }
 }
 
@@ -123,7 +175,7 @@ export default {
   .clip-path-container.open-clip-path {
     clip-path: circle(100% at 50% 50%);
   }
-  .clip-path-container:active {
+  .clip-path-container:active, .clip-path-container.on-quickdrag  {
     clip-path: unset;
   }
 

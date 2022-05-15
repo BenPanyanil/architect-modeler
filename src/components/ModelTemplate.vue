@@ -2,20 +2,48 @@
     <div 
       ref="model" 
       @mousedown.prevent="mouseDown" 
-      class="model" :class="modelData.type">
+      class="model" 
+      :class="modelData.type">
         <div class="model-header">
-            <span class="text-light">type:</span> {{modelData.type}}
+            <div>
+              <span class="text-light">type:</span> {{modelData.type}}
+            </div>
+            <div  
+              class="model-menu-handler"
+              @click="toggleMenu">
+              +
+              <model-menu 
+                v-if="openMenu"
+                :modelType="modelData.type">
+              </model-menu>
+            </div>
         </div>
-        <div class="add-button">+</div>
+
+        <div 
+          v-if="true" 
+          class="add-button"
+          @click="toggleAttributeMenu">
+          +
+          <model-menu 
+            v-if="openAttributeMenu"
+            :isAttributeMenu="true"
+            :modelType="modelData.type">
+          </model-menu>
+        </div>
+
         <div class="attribute-container">
         </div>
     </div>
 </template>
 
 <script>
+import ModelMenu from "./ModelMenu.vue";
 
 export default {
   name: 'modelTemplate',
+  components: {
+    ModelMenu,
+  },
   props: {
     isPreview: Boolean,
     modelData: Object,
@@ -40,6 +68,9 @@ export default {
       parent_bound_left: null,
       parent_bound_right: null,
       parent_bound_top: null,
+
+      openMenu: false,
+      openAttributeMenu: false,
     }
   },
   created() {
@@ -63,7 +94,6 @@ export default {
         this.model.style.left = this.modelData.pos_x + 'px';
         this.model.style.top = this.modelData.pos_y + 'px';
     }
-
   },
   unmounted() {
     window.removeEventListener("resize", this.getParentBound)
@@ -118,10 +148,18 @@ export default {
       document.onmousemove = null;
 
       // Add new model if dragged from preview
-      if (this.isPreview) this.addNewModel()
+      if (this.isPreview) this.addNewModel(this.model)
     },
-    addNewModel() {
-      const model_position = this.model.getBoundingClientRect();
+    quickDrag(mouse, model) {
+      model.style.left = (mouse.clientX - model.clientWidth / 2) + 'px';
+      model.style.top = (mouse.clientY - 30) + 'px';
+    },
+    quickDragStopped(model) {
+      // Add new model if dragged from preview
+      if (this.isPreview) this.addNewModel(model)
+    },
+    addNewModel(model) {
+      const model_position = model.getBoundingClientRect();
       const model_pool_bounding = document.getElementById("model-pool").getBoundingClientRect();
 
       // Check if model is dragged to appropriate place. 
@@ -152,7 +190,15 @@ export default {
       this.parent_bound_left = parentBounding.left;
       this.parent_bound_right = parentBounding.right;
       this.parent_bound_top = parentBounding.top;
-    }
+    },
+    toggleMenu() {
+      this.openMenu = !this.openMenu;
+      this.openAttributeMenu = false;
+    },
+    toggleAttributeMenu() {
+      this.openAttributeMenu = !this.openAttributeMenu;
+      this.openMenu = false;
+    },
   }
 }
 </script>
@@ -166,7 +212,7 @@ export default {
     width: $model-width;
     min-height: $model-min-height;
     border-radius: $model-border-radius;
-    overflow: hidden;
+    box-shadow: -2px 4px 8px rgba(0,0,0,0.3);
     cursor: move;
 
     .add-button {
@@ -182,53 +228,65 @@ export default {
       width: 35px;
       height: 35px;
       border-radius: 100px;
-      color: $white;
       cursor: pointer;
+
+      &:not(:hover) {
+        color: $white;
+      }
     }
 
     &.class {
-      color: $blue;
-      border-left: 7px solid $blue;
+      color: $type-class;
+      border-left: 7px solid $type-class;
 
       .add-button {
-        border: 2px solid $blue;
-        &:hover {
-          color: inherit;
+        border: 2px solid $type-class;
+        & * {
+          color: $type-class;
         }
       }
     }
     &.class-instance {
-      color: $purple;
-      border-left: 7px solid $purple;
+      color: $type-class-instance;
+      border-left: 7px solid $type-class-instance;
 
       .add-button {
-        border: 2px solid $purple;
-        &:hover {
-          color: inherit;
+        border: 2px solid $type-class-instance;
+        & * {
+          color: $type-class;
         }
       }
     }
     &.function {
-      color: $green;
+      color: $type-function;
       border-left: 7px solid;
 
       .add-button {
-        border: 2px solid $green;
-        &:hover {
-          color: inherit;
+        border: 2px solid $type-function;
+        & * {
+          color: $type-class;
         }
       }
     }
 
     .model-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       font-weight: 500;
-      padding: 5px 15px;
+      padding: 5px 10px 5px 15px;
+
+      .model-menu-handler {
+        font-size: 1.2rem;
+        cursor: pointer;
+      }
     }
 
     .attribute-container {
       display: flex;
       align-items: center;
       height: 100%;
+      padding: 0 15px;
     }
   }
 </style>
