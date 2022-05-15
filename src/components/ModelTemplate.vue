@@ -2,9 +2,12 @@
     <div 
       ref="model" 
       @mousedown.prevent="mouseDown" 
-      class="model" :class="type || previewModel.type">
+      class="model" :class="modelData.type">
         <div class="model-header">
-            type: <span class="type-name">{{type || previewModel.type}}</span>
+            <span class="text-light">type:</span> {{modelData.type}}
+        </div>
+        <div class="add-button">+</div>
+        <div class="attribute-container">
         </div>
     </div>
 </template>
@@ -15,7 +18,7 @@ export default {
   name: 'modelTemplate',
   props: {
     isPreview: Boolean,
-    previewModel: Object,
+    modelData: Object,
     type: String,
   },
   data() {
@@ -28,6 +31,9 @@ export default {
       model: null,
       model_width: null,
       model_height: null,
+
+      model_pos_x: null,
+      model_pos_y: null,
 
       parent_height: null,
       parent_width: null,
@@ -53,7 +59,11 @@ export default {
     if (this.isPreview) {
       this.model.style.left = parentBounding.left + 'px';
       this.model.style.top = parentBounding.top + 'px';
+    } else {
+        this.model.style.left = this.modelData.pos_x + 'px';
+        this.model.style.top = this.modelData.pos_y + 'px';
     }
+
   },
   unmounted() {
     window.removeEventListener("resize", this.getParentBound)
@@ -63,10 +73,10 @@ export default {
       // mouse cursor position at start
       this.start_x = mouse.clientX;
       this.start_y = mouse.clientY;
-      document.onmouseup = this.mouseStop;
-      document.onmousemove = this.isPreview ? this.mouseDragPreview : this.mouseDrag;
+      document.onmouseup = this.dragStopped;
+      document.onmousemove = this.isPreview ? this.dragInPreview : this.drag;
     },
-    mouseDrag(mouse) {
+    drag(mouse) {
       const new_x = mouse.clientX;
       const new_y = mouse.clientY;
 
@@ -78,18 +88,18 @@ export default {
       this.start_x = mouse.clientX;
       this.start_y = mouse.clientY;
 
-      let model_pos_x = (this.model.offsetLeft - this.change_x);
-      let model_pos_y = (this.model.offsetTop - this.change_y);
+      let pos_x = (this.model.offsetLeft - this.change_x);
+      let pos_y = (this.model.offsetTop - this.change_y);
 
-      if (model_pos_x > this.parent_bound_left && model_pos_x + this.model_width < this.parent_bound_right) {
-        this.model.style.left = model_pos_x + 'px';
+      if (pos_x > this.parent_bound_left && pos_x + this.model_width < this.parent_bound_right) {
+        this.model.style.left = pos_x + 'px';
       }
 
-      if (model_pos_y > this.parent_bound_top) {
-        this.model.style.top = model_pos_y + 'px';
+      if (pos_y > this.parent_bound_top) {
+        this.model.style.top = pos_y + 'px';
       }
     },
-    mouseDragPreview(mouse) {
+    dragInPreview(mouse) {
       const new_x = mouse.clientX;
       const new_y = mouse.clientY;
       
@@ -102,12 +112,39 @@ export default {
       this.model.style.left = (this.model.offsetLeft - this.change_x) + 'px';
       this.model.style.top = (this.model.offsetTop - this.change_y) + 'px';
     },
-    mouseStop() {
+    dragStopped() {
       document.onmouseup = null;
       document.onmouseleave = null;
       document.onmousemove = null;
-      console.log("stopped");
-      this.$emit("update:previewModel", null);
+
+      // Add new model if dragged from preview
+      if (this.isPreview) this.addNewModel()
+    },
+    addNewModel() {
+      const model_position = this.model.getBoundingClientRect();
+      const model_pool_bounding = document.getElementById("model-pool").getBoundingClientRect();
+
+      // Check if model is dragged to appropriate place. 
+      // Otherwise return to origin position.
+      if (
+          model_position.x > model_pool_bounding.left && 
+          model_position.x < model_pool_bounding.right &&
+          model_position.y > model_pool_bounding.top
+      ) {
+        // create new model to main view
+        const model_object = {
+          "type": this.modelData.type,
+          "pos_x": model_position.x,
+          "pos_y": model_position.y,
+        }
+
+        this.$store.dispatch("addModel", model_object)
+        this.$emit("resetModelPreview");
+      } else {
+        // return model back to origin
+        this.model.style.left = this.parent_bound_left + "px";
+        this.model.style.top = this.parent_bound_top + "px";
+      }
     },
     getParentBound() {
       const parent = this.$parent.$refs.modelPool;
@@ -130,34 +167,68 @@ export default {
     min-height: $model-min-height;
     border-radius: $model-border-radius;
     overflow: hidden;
-    font-size: 1rem;
     cursor: move;
 
+    .add-button {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 400;
+      margin: 0 auto;
+      width: 35px;
+      height: 35px;
+      border-radius: 100px;
+      color: $white;
+      cursor: pointer;
+    }
+
     &.class {
+      color: $blue;
       border-left: 7px solid $blue;
 
-      .type-name {
-        color: $blue;
+      .add-button {
+        border: 2px solid $blue;
+        &:hover {
+          color: inherit;
+        }
       }
     }
     &.class-instance {
+      color: $purple;
       border-left: 7px solid $purple;
 
-      .type-name {
-        color: $purple;
+      .add-button {
+        border: 2px solid $purple;
+        &:hover {
+          color: inherit;
+        }
       }
     }
     &.function {
-      border-left: 7px solid $green;
+      color: $green;
+      border-left: 7px solid;
 
-      .type-name {
-        color: $green;
+      .add-button {
+        border: 2px solid $green;
+        &:hover {
+          color: inherit;
+        }
       }
     }
 
     .model-header {
-      font-weight: 600;
+      font-weight: 500;
       padding: 5px 15px;
+    }
+
+    .attribute-container {
+      display: flex;
+      align-items: center;
+      height: 100%;
     }
   }
 </style>

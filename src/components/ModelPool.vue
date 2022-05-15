@@ -1,18 +1,22 @@
 <template>
-  <section
-    class="model-pool"
+  <main
+    id="model-pool"
     ref="modelParent">
-    <!-- <model-template></model-template> -->
-  </section>
+    <model-template
+      v-for="model, i in models"
+      :key="i"
+      :modelData="model">
+    </model-template>
+  </main>
 </template>
 
 <script>
-// import ModelTemplate from "./ModelTemplate.vue";
+import ModelTemplate from "./ModelTemplate.vue";
 
 export default {
   name: "ModelPool",
   components: {
-    // ModelTemplate,
+    ModelTemplate,
   },
   data() {
     return {
@@ -21,7 +25,12 @@ export default {
   },
   mounted() {
 
-  }
+  },
+  computed: {
+    models() {
+      return this.$store.state.models;
+    },
+  },
 }
 </script>
 
@@ -29,7 +38,7 @@ export default {
   @import "../styles.scss";
   $grid-color: rgba(64, 62, 65, 0.5);
   
-  .model-pool {
+  #model-pool {
     display: inline-block;
     background: $grey-2;
     width: 100%;

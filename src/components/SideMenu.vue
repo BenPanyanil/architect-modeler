@@ -1,5 +1,6 @@
 <template>
-  <section class="side-menu">
+  <main class="side-menu" ref="sideMenu">
+
     <section class="language-picker">
     </section>
 
@@ -20,15 +21,16 @@
           class="clip-path-container" 
           :class="{'open-clip-path': clipOpen}">
           <model-template 
-            v-if="previewModel"
-            @mouseup="clipOpen = false"
+            v-if="modelPreview"
+            @resetModelPreview="resetModelPreview"
             :isPreview="true"
-            v-model:previewModel="previewModel">
+            v-model:modelData="modelPreview">
           </model-template>
         </div>
       </div>
     </section>
-  </section>
+
+  </main>
 </template>
 
 <script>
@@ -42,7 +44,7 @@ export default {
   },
   data() {
     return {
-      previewModel: null,
+      modelPreview: null,
       clipOpen: false,
     }
   },
@@ -52,7 +54,11 @@ export default {
       const typeObject = {
         type: type,
       }
-      this.previewModel = typeObject;
+      this.modelPreview = typeObject;
+    },
+    resetModelPreview() {
+      this.clipOpen = false;
+      this.modelPreview = null;
     },
   }
 }
@@ -72,7 +78,6 @@ export default {
   height: 100vh;
   color: $white;
   box-shadow: 1px 0 0 1px $grey-3;
-  font-size: 0.9rem;
 }
 
 .program-objects {
