@@ -1,7 +1,7 @@
 <template>
   <main
     id="model-pool"
-    ref="modelParent">
+    ref="modelPool">
     <model-template
       v-for="model, i in models"
       :key="i"
@@ -18,13 +18,16 @@ export default {
   components: {
     ModelTemplate,
   },
-  data() {
-    return {
-
-    }
-  },
   mounted() {
-
+    const modelPoolBounding = this.$refs.modelPool.getBoundingClientRect();
+    this.$store.dispatch("addModelPoolBounding", modelPoolBounding);
+    window.addEventListener("resize", () => {
+      const modelPoolBounding = this.$refs.modelPool.getBoundingClientRect();
+      this.$store.dispatch("addModelPoolBounding", modelPoolBounding);
+    });
+  },
+  unmounted() {
+    window.removeEventListener("resize")
   },
   computed: {
     models() {

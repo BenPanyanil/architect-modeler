@@ -38,6 +38,7 @@
 
 <script>
 import ModelMenu from "./ModelMenu.vue";
+import { mapState } from "vuex";
 
 export default {
   name: 'modelTemplate',
@@ -63,41 +64,27 @@ export default {
       model_pos_x: null,
       model_pos_y: null,
 
-      parent_height: null,
-      parent_width: null,
-      parent_bound_left: null,
-      parent_bound_right: null,
-      parent_bound_top: null,
-
       openMenu: false,
       openAttributeMenu: false,
     }
-  },
-  created() {
-    window.addEventListener("resize", this.getParentBound);
   },
   mounted() {
     this.model = this.$refs.model;
     this.model_width = this.model.clientWidth;
     this.model_height = this.model.clientHeight;
-    
-    const parent = this.$parent.$refs.modelParent;
-    const parentBounding = parent.getBoundingClientRect();
-    this.parent_bound_left = parentBounding.left;
-    this.parent_bound_right = parentBounding.right;
-    this.parent_bound_top = parentBounding.top;
 
     if (this.isPreview) {
-      this.model.style.left = parentBounding.left + 'px';
-      this.model.style.top = parentBounding.top + 'px';
+      this.model.style.left = this.modelPreviewBounding.left + 'px';
+      this.model.style.top = this.modelPreviewBounding.top + 'px';
     } else {
         this.model.style.left = this.modelData.pos_x + 'px';
         this.model.style.top = this.modelData.pos_y + 'px';
     }
   },
-  unmounted() {
-    window.removeEventListener("resize", this.getParentBound)
-  },
+  computed: mapState({
+    modelPoolBounding: "modelPoolBounding",
+    modelPreviewBounding: "modelPreviewBounding",
+  }),
   methods: {
     mouseDown(mouse) {
       // mouse cursor position at start
@@ -110,7 +97,7 @@ export default {
       const new_x = mouse.clientX;
       const new_y = mouse.clientY;
 
-      if (new_x < this.parent_bound_left || new_x > this.parent_bound_right || new_y < this.parent_bound_top) return;
+      if (new_x < this.modelPoolBounding.left || new_x > this.modelPoolBounding.right || new_y < this.modelPoolBounding.top) return;
       
       this.change_x = this.start_x - new_x;
       this.change_y = this.start_y - new_y;
@@ -121,11 +108,11 @@ export default {
       let pos_x = (this.model.offsetLeft - this.change_x);
       let pos_y = (this.model.offsetTop - this.change_y);
 
-      if (pos_x > this.parent_bound_left && pos_x + this.model_width < this.parent_bound_right) {
+      if (pos_x > this.modelPoolBounding.left && pos_x + this.model_width < this.modelPoolBounding.right) {
         this.model.style.left = pos_x + 'px';
       }
 
-      if (pos_y > this.parent_bound_top) {
+      if (pos_y > this.modelPoolBounding.top) {
         this.model.style.top = pos_y + 'px';
       }
     },
@@ -160,14 +147,13 @@ export default {
     },
     addNewModel(model) {
       const model_position = model.getBoundingClientRect();
-      const model_pool_bounding = document.getElementById("model-pool").getBoundingClientRect();
 
       // Check if model is dragged to appropriate place. 
       // Otherwise return to origin position.
       if (
-          model_position.x > model_pool_bounding.left && 
-          model_position.x < model_pool_bounding.right &&
-          model_position.y > model_pool_bounding.top
+          model_position.x > this.modelPoolBounding.left && 
+          model_position.x + this.model_width < this.modelPoolBounding.right &&
+          model_position.y > this.modelPoolBounding.top
       ) {
         // create new model to main view
         const model_object = {
@@ -180,16 +166,9 @@ export default {
         this.$emit("resetModelPreview");
       } else {
         // return model back to origin
-        this.model.style.left = this.parent_bound_left + "px";
-        this.model.style.top = this.parent_bound_top + "px";
+        this.model.style.left = this.modelPreviewBounding.left + "px";
+        this.model.style.top = this.modelPreviewBounding.top + "px";
       }
-    },
-    getParentBound() {
-      const parent = this.$parent.$refs.modelPool;
-      const parentBounding = parent.getBoundingClientRect();
-      this.parent_bound_left = parentBounding.left;
-      this.parent_bound_right = parentBounding.right;
-      this.parent_bound_top = parentBounding.top;
     },
     toggleMenu() {
       this.openMenu = !this.openMenu;

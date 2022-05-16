@@ -30,14 +30,13 @@
     <section class="side-menu-section">
       <span>Model preview</span>
       <div
-        ref="modelParent" 
+        ref="modelPreview" 
         class="model-preview-container">
         <div 
           class="clip-path-container" 
           :class="{'open-clip-path': clipOpen, 'on-quickdrag': onQuickDrag}">
           <model-template 
             v-if="modelPreview"
-            ref="modelPreview"
             @resetModelPreview="resetModelPreview"
             :isPreview="true"
             v-model:modelData="modelPreview">
@@ -70,13 +69,15 @@ export default {
     }
   },
   mounted() {
-    window.onkeydown = this.startQuickDrag;
-    window.onkeyup = this.stopQuickDrag
+    const modelPreviewBounding = this.$refs.modelPreview.getBoundingClientRect();
+    this.$store.dispatch("addModelPreviewBounding", modelPreviewBounding);
+    // window.onkeydown = this.startQuickDrag;
+    // window.onkeyup = this.stopQuickDrag
   },
-  unmounted() {
-    window.onkeydown = null;
-    window.onkeyup = null;
-  },
+  // unmounted() {
+  //   window.onkeydown = null;
+  //   window.onkeyup = null;
+  // },
   methods: {
     createModel(type) {
       this.clipOpen = true;
@@ -89,24 +90,24 @@ export default {
       this.clipOpen = false;
       this.modelPreview = null;
     },
-    startQuickDrag(e) {
-      if (e.key === "Control" && this.modelPreview) {
-        this.onQuickDrag = true;
-        const model = this.$refs.modelPreview.$refs.model;
+    // startQuickDrag(e) {
+    //   if (e.key === "Control" && this.modelPreview) {
+    //     this.onQuickDrag = true;
+    //     const model = this.$refs.modelPreview.$refs.model;
         
-        if (window.onmousemove === null) {
-          window.onmousemove = (mouse) => {
-            ModelTemplate.methods.quickDrag(mouse, model);
-          };
-        }
-      }
-    },
-    stopQuickDrag(e) {
-      if (e.key === "Control" && this.modelPreview) {
-        window.onmousemove = null;
-        ModelTemplate.methods.quickDragStopped();
-      }
-    },
+    //     if (window.onmousemove === null) {
+    //       window.onmousemove = (mouse) => {
+    //         ModelTemplate.methods.quickDrag(mouse, model);
+    //       };
+    //     }
+    //   }
+    // },
+    // stopQuickDrag(e) {
+    //   if (e.key === "Control" && this.modelPreview) {
+    //     window.onmousemove = null;
+    //     ModelTemplate.methods.quickDragStopped();
+    //   }
+    // },
   }
 }
 </script>

@@ -1,11 +1,9 @@
 <template>
   <body>
-    <side-menu 
-      @createModel="createModel">
+    <side-menu>
     </side-menu>
 
-    <model-pool
-      :models="models">
+    <model-pool>
     </model-pool>
 
   </body>
@@ -21,17 +19,7 @@ export default {
   components: {
     SideMenu,
     ModelPool,
-  },
-  data() {
-    return {
-      models: [],
-    }
-  },
-  methods: {
-    createModel(modelObject) {
-      this.models.push(modelObject)
-    }
-  },
+  }
 }
 </script>
 
